@@ -12,17 +12,20 @@
     />
     <link rel="stylesheet" href="style.css" />
   </head>
+
   <body>
-    <div class="jumbotron">
-      <h1 class="display-4">Weather Dashboard</h1>
-    </div>
+    <header>
+      <div class="jumbotron">
+        <h1 class="display-4">Weather Dashboard</h1>
+      </div>
+    </header>
 
     <div class="card" style="width: 18rem">
       <div class="card-body">
         <form id="searchBar">
           <label id="searchForLabel">Search For a City:</label>
           <input type="city" id="citySearch" />
-          <button id="searchButton">Search</button>
+
         </form>
         <article id="search-history">
           <h6>Search History</h6>
@@ -35,6 +38,11 @@
           </ul>
         </article>
       </div>
+    </div>
+
+    <div class="col-lg-9">
+      <div class="card" id="currentWeather"></div>
+      <div class="forecast"></div>
     </div>
 
     <script
@@ -52,6 +60,7 @@
       integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
       crossorigin="anonymous"
     ></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
