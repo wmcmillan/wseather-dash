@@ -14,53 +14,62 @@
   </head>
 
   <body>
-    <header>
-      <div class="jumbotron">
-        <h1 class="display-4">Weather Dashboard</h1>
-      </div>
+    <header class="jumbotron text-center mb-0">
+        <h1>Weather Dashboard</h1>
     </header>
+    <main class="container-fluid p-0">
+        <div class="row m-0 w-100">
+            <div class="col-md-4 p-2" id="search-aside">
+                <form>
+                    <div class="form-group p-2">
+                        <label for="search-city">Search for a City:</label>
+                        <br>
+                        <input type="text" class="d-inline" id="search-city" name="search-city">
+                        <button class="btn btn-primary d-inline" id="search-button">Search</button>
+                    </div>
+                </form>
+                <article id="search-history">
+                  <h6>Search History</h6>
+                  <ul class="collection" id="search-history">
+                    <li id="hist0" class="collection-item">&nbsp</li>
+                    <li id="hist1" class="collection-item">&nbsp</li>
+                    <li id="hist2" class="collection-item">&nbsp</li>
+                    <li id="hist3" class="collection-item">&nbsp</li>
+                    <li id="hist4" class="collection-item">&nbsp</li>
+                  </ul>
+                </article>
+            </div>
+            <div class="col-md-8 p-2 d-none" id="current-weather-container">
+                <div class="row m-0 p-2 border border-dark results-card">
+                    <div class="col-md-12">
+                        <h2 id="card-city">Atlanta (DATE) (ICON)</h2>
+                        <p>Temperature: <span id="card-tempF">##</span>F</p>
+                        <p>Humidity: <span id="card-humidity">##</span>%</p>
+                        <p>Wind Speed: <span id="card-wind">##</span>MPH</p>
+                        <p>UV Index <span id="card-uv">##</span></p>
+                    </div>
+                </div>
+                <div class="row m-0 mt-2 justify-content-center border border-dark" id="forecast-container">
+                    <div class="col-md-12">
+                        <h3>Forecast: </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    <div class="card" style="width: 18rem">
-      <div class="card-body">
-        <form id="searchBar">
-          <label id="searchForLabel">Search For a City:</label>
-          <input type="city" id="citySearch" />
-
-        </form>
-        <article id="search-history">
-          <h6>Search History</h6>
-          <ul class="collection" id="search-history">
-            <li id="hist0" class="collection-item">&nbsp</li>
-            <li id="hist1" class="collection-item">&nbsp</li>
-            <li id="hist2" class="collection-item">&nbsp</li>
-            <li id="hist3" class="collection-item">&nbsp</li>
-            <li id="hist4" class="collection-item">&nbsp</li>
-          </ul>
-        </article>
-      </div>
-    </div>
-
-    <div class="col-lg-9">
-      <div class="card" id="currentWeather"></div>
-      <div class="forecast"></div>
-    </div>
-
-    <script
-      src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-      integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
-      integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
-      integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
-      crossorigin="anonymous"
-    ></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="script.js"></script>
-  </body>
+</body>
+
 </html>

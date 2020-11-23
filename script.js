@@ -1,238 +1,133 @@
-var APIurl = "http://api.openweathermap.org/data/2.5/forecast?id=524901&APPID={YOUR API KEY}"
+var apiKey = "dde55275793968119ad3b1dd2529eda8";
 
-var APIkey = "b8490967e1286ac31919deba8dced9fc"
+var searchCityInputEl = $("#search-city");
+var searchBtn = $("#search-button")
+var searchHistoryContainer = $("#search-history-container")
 
-var city;
-// For Autocomplete dropdown keyboard controls
-var currentFocus = -1;
-// Pull data from localStorage
-var cityArr = JSON.parse(localStorage.getItem("cities"));
-if (!cityArr) {
-  // If no data stored
-  cityArr = [];
-} else {
-  // Grab the first city in the stored array
-  city = cityArr[0];
-  // Display list of cities from cityArr
-  loadCities()
-  // Load page
-  getWeather();
-}
+var cardCity = $("#card-city");
+var cardTempF = $("#card-tempF");
+var cardHumidity = $("#card-humidity");
+var cardWind = $("#card-wind");
+var cardUV = $("#card-uv");
+var currentWeatherContainer = $("#current-weather-container")
 
-// Append each city as an li
-function loadCities() {
-  $(".list-group").empty();
-  for (var i = 0; i < cityArr.length; i++) {
-    var cityLi = $("<li class='list-group-item'>").text(cityArr[i]);
-    $(".list-group").append(cityLi);
-  }
-}
+var forecastContainer = $("#forecast-container")
 
-function getWeather() {
-  // Pass city or address to geocode API, receive lat-long
-  var geocodeURL = "https://app.geocodeapi.io/api/v1/search?text=" + city + "&apikey=0a157990-f940-11ea-ac04-cb65445966da"
-  $.ajax({
-    url: geocodeURL,
-    method: "GET"
-  }).then(function (response) {
-    // API passes back 4 coords that form a box. Get the center of that box
-    city = response.features[0].properties.label;
-    var lat = (response.bbox[3] + response.bbox[1]) / 2;
-    var lon = (response.bbox[2] + response.bbox[0]) / 2;
+var searchHistory = [];
 
-    // Pass lat lon to openWeatherMap OneCall API, get back current and forecasted weather
-    var weatherURL = "https://api.openweathermap.org/data/2.5/onecall?lat=" + lat + "&lon=" + lon + "&exclude=hourly,minutely&units=imperial&appid=b8490967e1286ac31919deba8dced9fc"
+searchBtn.on("click", function(e){
+    e.preventDefault();
+    currentWeatherContainer.removeClass("d-none")
+    var searchCityVal = searchCityInputEl.val();
+
+    var inputLat;
+    var inputLon;
+
+    searchHistory.push(searchCityVal);
+    renderSearchHistory();
+
+    //update search 
+    
+    var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" + searchCityVal + "&appid=dde55275793968119ad3b1dd2529eda8";
+  
+    //get weather
     $.ajax({
-      url: weatherURL,
-      method: "GET"
+        url: queryURL,
+        method: "GET"
     }).then(function (response) {
-      loadCurrentWeather(response);
-      loadForecasts(response.daily);
+        inputLat = response.coord.lat;
+        inputLon = response.coord.lon;
+        var tempF = (response.main.temp * 9/5) - 459.67
+        var humidity = response.main.humidity;
+        var windSpeed = response.wind.speed;
+        
+        $.ajax({ 
+            url: `https://api.openweathermap.org/data/2.5/onecall?lat=${(inputLat)}&lon=${(inputLon)}&exclude=minutely,hourly,alerts&appid=dde55275793968119ad3b1dd2529eda8`,
+            method: "GET"
+        }).then(function (response) {
+            uvIndex = response.current.uvi;
+
+            cardCity.text(searchCityVal);
+            cardTempF.text(tempF.toFixed(2));
+            cardHumidity.text(humidity);
+            cardWind.text(windSpeed);
+            cardUV.text(uvIndex);
+            cardUV.css("background-color",uvConditionHighlight(uvIndex));
+
+            var forecastArray = response.daily;
+
+            generateForecast(forecastArray);
+        })
+    
     });
-  })
+
+
+})
+
+// Returns color formatting for UV Index based on UV Index Scale
+function uvConditionHighlight(uvIndex) {
+    switch (true) {
+        case uvIndex <= 2:
+            return "green";
+        case uvIndex <= 5:
+            return "yellow";
+        case uvIndex <= 7:
+            return "orange";
+        case uvIndex > 7:
+            return "red";
+    }
 }
 
+// Render the search history of past searched cities
+function renderSearchHistory() {
+    searchHistoryContainer.empty();
 
-// Load current weather conditions
-function loadCurrentWeather(weather) {
-  // Today's date
-  var currentDate = new Date(weather.current.dt * 1000).toLocaleDateString()
-  // Generate elements and fill with values
-  var currentWeatherDiv = $("<div class='card-body'>");
-  var cityDate = $("<h2>").text(`${city} (${currentDate})`);
-  var iconCode = weather.current.weather[0].icon
-  var figure = $("<figure style='text-align: center; width: 100px;'>")
-  var icon = $("<img>").attr("src", "http://openweathermap.org/img/wn/" + iconCode + "@2x.png")
-  var caption = $("<figcaption>").text(weather.current.weather[0].main)
-  figure.append(icon, caption);
-  var temp = $("<p>").text(`Temperature: ${Math.round(weather.current.temp)} °F`);
-  var humidity = $("<p>").text(`Humidity: ${weather.current.humidity}%`);
-  var windSpeed = $("<p>").text(`Wind Speed: ${weather.current.wind_speed} MPH`);
-  var uv = weather.current.uvi;
-  // Apply highlighting to UVIndex
-  if (uv < 2) {
-    var style = "background-color: green;";
-  } else if (uv >= 2 && uv < 5) {
-    var style = "background-color: yellow;";
-  } else if (uv >= 5 && uv < 7) {
-    var style = "background-color: orange;";
-  } else if (uv >= 7 && uv < 10) {
-    var style = "background-color: red;";
-  } else if (uv >= 10) {
-    var style = "background-color: rgb(141, 43, 222); color: white;";
-  }
-  var uvIndex = $("<p>").html(`UV Index: <span style="${style}" id="uv">${uv}<span>`);
-  // Put everything on the page
-  currentWeatherDiv.append(cityDate, figure, temp, humidity, windSpeed, uvIndex);
-  // Empty the page in case this isn't the first load
-  $("#currentWeather").empty()
-  $("#currentWeather").append(currentWeatherDiv);
-}
-
-// Load 5 day forecast
-function loadForecasts(forecasts) {
-  // Generate header and box to hold forecast cards
-  var forecastHeader = $("<h2>").text("Forecast:");
-  var forecastBox = $("<div class='flex-box'>");
-  // Generate a card for each day. Index 0 is today's weather
-  for (var i = 1; i < 6; i++) {
-    var forecast = forecasts[i]
-    // Numeric date
-    var date = new Date(forecast.dt * 1000).toLocaleDateString();
-    // Day of the week
-    var day = new Date(forecast.dt * 1000).toLocaleString('en-us', { weekday: 'long' });
-    var temp = Math.round(forecast.temp.day);
-    var humidity = forecast.humidity;
-    // Generate elements
-    var forecastCard = $("<div class='card blue'>");
-    var fCardBody = $("<div class='card-body pb-0'>");
-    var fCardTitle = $("<h5 class='card-title'>");
-    var iconCode = forecast.weather[0].icon
-    var figure = $("<figure style='text-align: center;'>")
-    var icon = $("<img>").attr("src", "http://openweathermap.org/img/wn/" + iconCode + ".png")
-    var caption = $("<figcaption>").text(forecast.weather[0].main)
-    figure.append(icon, caption);
-    var fCardTemp = $("<p>")
-    var fCardHumidity = $("<p>")
-    fCardTitle.html(`${day}<br>${date}`)
-    fCardTemp.text(`Temp: ${temp} °F`)
-    fCardHumidity.text(`Humidity: ${humidity}%`)
-
-    fCardBody.append(fCardTitle, figure, fCardTemp, fCardHumidity);
-    forecastCard.append(fCardBody);
-    forecastBox.append(forecastCard);
-  }
-  // Empty in case this isn't first load
-  $(".forecast").empty();
-  // Put it all on the page
-  $(".forecast").append(forecastHeader, forecastBox);
-}
-
-// Event listeners ====================================================================
-
-
-// Autocomplete using geocodeapi
-$("#city-input").on("input", function () {
-  var input = $("#city-input").val();
-  console.log(input)
-  if (input.length > 2) {
-    queryURL = "https://app.geocodeapi.io/api/v1/autocomplete?apikey=0a157990-f940-11ea-ac04-cb65445966da&text=" + input + "&size=5&"
-    $.ajax({
-      url: queryURL,
-      method: "GET"
-    }).then(function (response) {
-      var autoCities = response.features;
-      var autoArr = [];
-      for (var i = 0; i < autoCities.length; i++) {
-        autoArr.push(autoCities[i].properties.label)
-      }
-      var autoList = $("#autocomplete-list");
-      autoList.empty();
-      for (var i = 0; i < autoArr.length; i++) {
-        var autoCompleteItem = $("<div>");
-        autoCompleteItem.text(autoArr[i]);
-        autoList.append(autoCompleteItem);
-      }
+    jQuery.each(searchHistory,function(index, value){
+        var newSearchDiv = $("<div>", {
+            "text": value,
+            "class": `search-history-div border border-secondary p-3 bg-light`,
+        })
+        searchHistoryContainer.append(newSearchDiv);
     })
-  }
-})
 
-
-// Keyboard controls for autocomplete list
-$("#city-input").on("keydown", function (event) {
-  var input = $("#city-input");
-  var autoItems = $("#autocomplete-list div");
-  switch (event.code) {
-    case "ArrowDown":
-      currentFocus++;
-      addActive(autoItems);
-      break;
-    case "ArrowUp":
-      currentFocus--;
-      addActive(autoItems);
-      break;
-    case "Enter":
-    // Fall-through
-    case "NumpadEnter":
-      if (currentFocus !== -1) {
-        console.log(autoItems[currentFocus])
-        input.val(autoItems[currentFocus].textContent);
-      }
-      $("#cityBtn").trigger("click");
-      currentFocus = -1;
-      event.target.blur();
-      break;
-    default:
-      break;
-  }
-})
-
-// Highlight selected div of autocomplete dropdown
-function addActive(element) {
-  if (!element) return false;
-  // First remove all 'autocomplete-active' classes
-  for (var i = 0; i < element.length; i++) {
-    element[i].classList.remove("autocomplete-active");
-  }
-  // Allow selection to wrap around from bottom to top and top to bottom
-  if (currentFocus >= element.length) currentFocus = 0;
-  if (currentFocus < 0) currentFocus = (element.length - 1);
-  // Add class selected div
-  element[currentFocus].classList.add("autocomplete-active");
 }
 
-// Remove autocomplete divs on any click
-$(document).on("click", function () {
-  $(".autocomplete-items").empty()
-});
+// generate the 5 day forecast div and content
+function generateForecast(arr) {
 
-// Gather user input and pass to getweather() and loadCities()
-$("#cityBtn").on("click", function (event) {
-  event.preventDefault();
-  city = $("#city-input").val().trim();
-  if (!city) return;
-  $("#city-input").val("");
-  cityArr.unshift(city);
-  // Convert to Set to remove duplicates
-  cityArr = Array.from(new Set(cityArr));
-  // Limit cityArr to 5 entires
-  if (cityArr.length > 5) cityArr.pop();
-  localStorage.setItem("cities", JSON.stringify(cityArr));
-  getWeather();
-  loadCities();
-})
+    // remove existing content in forecast div
+    forecastContainer.empty();
 
-// Listen for a click on the autocomplete dropdown
-$("#autocomplete-list").on("click", function (event) {
-  // Fill input box with selection
-  $("#city-input").val(event.target.textContent);
-  // Trigger a #cityBtn click
-  $("#cityBtn").trigger("click");
-});
+    // create forecast header "5 Day Forecast"
+    var forecastHeaderDiv = $("<div>", {
+        "class": `col-md-12`
+    })
+    var forecastHeader = $("<h2>", {
+        "text": `5 Day Forecast: `
+    })
 
-// Listen for a click on saved cities list, 
-$(".list-group").on("click", function (event) {
-  city = event.target.textContent;
-  getWeather();
+    forecastHeaderDiv.append(forecastHeader);
+    forecastContainer.append(forecastHeaderDiv);
 
-})
+
+    // generate the 5 day forecast cards with details like temp and humidity
+    for (let index = 0; index < 5; index++) {
+        var forecastCard = $("<div>", {
+            "class": `col-md-2 forecast-card`
+        })
+        var forecastDate = $("<p>")
+        var forecastTempF = $("<p>");
+        var forecastHumidity = $("<p>");
+        var forecastIcon = $("<img>", {
+            "src": `http://openweathermap.org/img/wn/${arr[index+1].weather[0].icon}@2x.png`
+        })
+
+        forecastDate.text(moment().add(index+1,'days').format("L"));
+        forecastTempF.text(`Temp: ${((arr[index+1].temp.day* 9/5) - 459.67).toFixed(2)}F`);
+        forecastHumidity.text(`Humidity: ${arr[index+1].humidity}%`);
+
+        forecastCard.append(forecastDate,forecastIcon,forecastTempF,forecastHumidity);
+        forecastContainer.append(forecastCard);       
+        console.log(index) 
+    }
+}
